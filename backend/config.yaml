@@ -1,0 +1,38 @@
+default_filters:
+  property_type: "ban-nha-dat-ha-noi"
+  location: "ha-noi"
+  district: ""
+  price_min: 3000
+  price_max: 6000
+  area_min: 60
+  area_max: 100
+  bedrooms_min: 2
+  keywords:
+    - "sổ hồng"
+    - "có sổ"
+  exclude_keywords:
+    - "chưa có sổ"
+
+scraper:
+  max_pages: 3
+  request_delay_min: 2
+  request_delay_max: 5
+  timeout: 30
+  max_retries: 3
+
+telegram:
+  bot_token: "8672143870:AAGZyocVfjxbVXmykmVkZ5jcKzMLTlPepoQ"
+  admin_chat_id: "1037615493"
+
+scheduler:
+  mode: "daily"        # "daily" hoặc "interval"
+  daily_hour: 9        # chạy lúc 09:00 mỗi ngày
+  daily_minute: 0
+  interval_minutes: 30 # dùng khi mode="interval"
+
+database:
+  path: "data/listings.db"
+
+logging:
+  level: "INFO"
+  file: "logs/agent.log"
