@@ -42,6 +42,11 @@ class TelegramNotifier(BaseNotifier):
                     sent += 1
         return sent
 
+    @staticmethod
+    def _esc(text: str) -> str:
+        """Escape ký tự đặc biệt của HTML để tránh parse error."""
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
     def _format_listing(self, listing: Listing) -> str:
         price_line = ""
         if listing.price_million:
@@ -56,19 +61,18 @@ class TelegramNotifier(BaseNotifier):
         if listing.area_m2 is not None:
             area_bed.append(f"📐 {listing.area_m2:g} m²")
 
-        lines = [
-            f"🏠 *{listing.title.strip()}*",
-        ]
+        title = self._esc(listing.title.strip()[:200])
+        lines = [f"🏠 <b>{title}</b>"]
         if listing.location:
-            lines.append(f"📍 {listing.location}")
+            lines.append(f"📍 {self._esc(listing.location)}")
         if price_line:
             lines.append(f"💰 {price_line}")
         if area_bed:
             lines.append(" | ".join(area_bed))
         if listing.posted_date:
-            lines.append(f"📅 Đăng: {listing.posted_date}")
-        lines.append(f"👉 [Xem chi tiết]({listing.url})")
-        lines.append(f"_Nguồn: {listing.source}_")
+            lines.append(f"📅 Đăng: {self._esc(listing.posted_date)}")
+        lines.append(f'👉 <a href="{listing.url}">Xem chi tiết</a>')
+        lines.append(f"<i>Nguồn: {self._esc(listing.source)}</i>")
         return "\n".join(lines)
 
     def _send_message(self, chat_id: str, text: str) -> bool:
@@ -77,8 +81,8 @@ class TelegramNotifier(BaseNotifier):
                 self._api_url("sendMessage"),
                 json={
                     "chat_id": chat_id,
-                    "text": text,
-                    "parse_mode": "Markdown",
+                    "text": text[:4096],
+                    "parse_mode": "HTML",
                     "disable_web_page_preview": False,
                 },
                 timeout=15,
@@ -98,8 +102,8 @@ class TelegramNotifier(BaseNotifier):
                 json={
                     "chat_id": chat_id,
                     "photo": photo_url,
-                    "caption": caption,
-                    "parse_mode": "Markdown",
+                    "caption": caption[:1024],
+                    "parse_mode": "HTML",
                 },
                 timeout=20,
             )

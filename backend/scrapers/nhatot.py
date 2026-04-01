@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from typing import Dict, List
+from urllib.parse import urlencode
 
 from .base import BaseScraper
 from ..models import Listing
@@ -12,8 +13,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class NhaTotScraper(BaseScraper):
-    """Scraper sử dụng JSON API của nhatot.com."""
-
     API_URL = "https://gateway.chotot.com/v1/public/ad-listing"
 
     def build_search_url(self, filters: Dict[str, object], page: int = 1) -> str:  # type: ignore[override]
@@ -41,31 +40,34 @@ class NhaTotScraper(BaseScraper):
         return params
 
     def scrape(self, filters: Dict[str, object]) -> List[Listing]:  # type: ignore[override]
-        """Override để gọi JSON API thay vì HTML."""
         s_cfg = self.config["scraper"]
         max_pages = int(s_cfg["max_pages"])
         results: List[Listing] = []
         for page in range(max_pages):
             offset = page * 20
             params = self._build_params(filters, offset)
+            url_with_params = f"{self.API_URL}?{urlencode(params)}"
+            LOGGER.info("[NhaTotScraper] Scraping trang %s (offset=%s): %s", page + 1, offset, url_with_params)
             try:
                 resp = self.session.get(self.API_URL, params=params, timeout=int(s_cfg["timeout"]))
                 if not resp.ok:
-                    LOGGER.warning("NhaTot HTTP %s", resp.status_code)
+                    LOGGER.warning("[NhaTotScraper] HTTP %s từ %s", resp.status_code, self.API_URL)
                     break
                 data = resp.json()
             except json.JSONDecodeError as exc:
-                LOGGER.warning("Không parse được JSON từ NhaTot: %s", exc)
+                LOGGER.warning("[NhaTotScraper] Không parse được JSON: %s", exc)
                 break
             except Exception as exc:  # noqa: BLE001
-                LOGGER.warning("Lỗi gọi API NhaTot: %s", exc)
+                LOGGER.warning("[NhaTotScraper] Lỗi gọi API: %s", exc)
                 break
 
             listings = self.parse_listings(data)
+            LOGGER.info("[NhaTotScraper] Trang %s: tìm thấy %s bản ghi", page + 1, len(listings))
             if not listings:
                 break
             results.extend(listings)
             self._random_delay()
+        LOGGER.info("[NhaTotScraper] Tổng cộng trước filter: %s bản ghi", len(results))
         return results
 
     def parse_listings(self, response_data: object) -> List[Listing]:  # type: ignore[override]
@@ -86,8 +88,13 @@ class NhaTotScraper(BaseScraper):
                 location_parts = [ad.get("area_name"), ad.get("region_name")]
                 location = ", ".join([p for p in location_parts if p])
                 description = ad.get("body")
-                url = f"https://www.nhatot.com/{ad.get('list_id')}.htm"
+                list_id = ad.get("list_id")
+                if not list_id:
+                    continue
+                url = f"https://www.nhatot.com/{list_id}.htm"
                 thumbnail = ad.get("image")
+                if not isinstance(thumbnail, str):
+                    thumbnail = None
                 listing = Listing(
                     url=url,
                     title=title,

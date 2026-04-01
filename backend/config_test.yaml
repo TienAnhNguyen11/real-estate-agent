@@ -1,5 +1,5 @@
 default_filters:
-  property_type: "ban-nha-dat-ha-noi"
+  property_type: "ban-can-ho-chung-cu"
   location: "ha-noi"
   district: ""
   price_min: 3000
@@ -21,12 +21,12 @@ scraper:
   max_retries: 3
 
 telegram:
-  bot_token: "8672143870:AAGZyocVfjxbVXmykmVkZ5jcKzMLTlPepoQ"
-  admin_chat_id: "1037615493"
+  bot_token: "your-bot-token-here"
+  admin_chat_id: "your-admin-chat-id-here"
 
 scheduler:
-  mode: "daily"        # "daily" hoặc "interval"
-  daily_hour: 9        # chạy lúc 09:00 mỗi ngày
+  mode: "daily"       # "daily" hoặc "interval"
+  daily_hour: 9       # chạy lúc 9:00 AM hàng ngày khi mode="daily"
   daily_minute: 0
   interval_minutes: 30 # dùng khi mode="interval"
 
@@ -35,4 +35,4 @@ database:
 
 logging:
   level: "INFO"
-  file: "logs/agent.log"
+  dir: "logs"

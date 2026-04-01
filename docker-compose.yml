@@ -1,0 +1,13 @@
+services:
+  real-estate-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./backend/config.yaml:/app/backend/config.yaml:ro
+      - ./backend/data:/app/backend/data
+      - ./logs:/app/logs

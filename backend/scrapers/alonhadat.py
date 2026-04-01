@@ -14,12 +14,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 class AloNhaDatScraper(BaseScraper):
-    """HTML scraper cho alonhadat.com.vn."""
-
     BASE_URL = "https://alonhadat.com.vn"
 
     def build_search_url(self, filters: Dict[str, object], page: int = 1) -> str:  # type: ignore[override]
-        # Hiện tại chỉ hỗ trợ căn hộ chung cư Hà Nội theo spec.
         path = "nha-dat/can-ban/can-ho-chung-cu/1/ha-noi.html"
         if page > 1:
             return f"{self.BASE_URL}/{path.replace('.html', f'/trang-{page}.html')}"

@@ -33,7 +33,6 @@ class ScraperOrchestrator:
         ]
 
     def run(self) -> None:
-        """Chạy 1 vòng crawl."""
         filters = self.filter_manager.get_all()
         if filters.get("is_paused"):
             LOGGER.info("Orchestrator đang ở trạng thái pause, bỏ qua vòng crawl.")
@@ -77,8 +76,9 @@ class ScraperOrchestrator:
             self.db.mark_notified([l.url for l in new_listings], now)
 
         LOGGER.info(
-            "Crawled: %s | After dedup/filter: %s | New: %s | Sent: %s | Errors: %s",
+            "Tổng crawled: %s | Sau dedup: %s | Sau filter: %s | Mới (chưa lưu): %s | Đã gửi: %s | Lỗi scraper: %s",
             len(all_listings),
+            len(deduped),
             len(filtered),
             len(new_listings),
             sent_count,

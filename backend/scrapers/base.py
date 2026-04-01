@@ -49,21 +49,23 @@ class BaseScraper(ABC):
         results: List[Listing] = []
         for page in range(1, max_pages + 1):
             url = self.build_search_url(filters, page=page)
-            LOGGER.info("Fetching %s page %s", self.__class__.__name__, page)
+            LOGGER.info("[%s] Scraping trang %s: %s", self.__class__.__name__, page, url)
             text = self.fetch_page(url)
             if not text:
-                LOGGER.info("Trang %s trả về rỗng, dừng.", page)
+                LOGGER.info("[%s] Trang %s trả về rỗng, dừng.", self.__class__.__name__, page)
                 break
             try:
                 listings = self.parse_listings(text)
             except Exception as exc:  # noqa: BLE001
-                LOGGER.exception("Lỗi parse trang %s: %s", page, exc)
+                LOGGER.exception("[%s] Lỗi parse trang %s: %s", self.__class__.__name__, page, exc)
                 listings = []
+            LOGGER.info("[%s] Trang %s: tìm thấy %s bản ghi", self.__class__.__name__, page, len(listings))
             if not listings:
-                LOGGER.info("Không tìm thấy listing ở trang %s, dừng.", page)
+                LOGGER.info("[%s] Không có listing ở trang %s, dừng.", self.__class__.__name__, page)
                 break
             results.extend(listings)
             self._random_delay()
+        LOGGER.info("[%s] Tổng cộng trước filter: %s bản ghi", self.__class__.__name__, len(results))
         return results
 
     def _random_delay(self) -> None:
